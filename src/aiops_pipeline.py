@@ -1,4 +1,4 @@
-mport json
+import json
 
 try:
     from .anomaly_detector import AnomalyDetector
