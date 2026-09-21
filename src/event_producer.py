@@ -1,4 +1,7 @@
-from event_topic import EventTopic
+try:
+    from .event_topic import EventTopic
+except ImportError:  # pragma: no cover - support direct script execution
+    from event_topic import EventTopic
 
 
 class EventProducer:
