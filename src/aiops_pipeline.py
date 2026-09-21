@@ -1,27 +1,30 @@
-import json
+mport json
 
-from anomaly_detector import AnomalyDetector
-from event_consumer import EventConsumer
-from event_producer import EventProducer
-from event_topic import EventTopic
+try:
+    from .anomaly_detector import AnomalyDetector
+    from .event_consumer import EventConsumer
+    from .event_producer import EventProducer
+    from .event_topic import EventTopic
+except ImportError:  # pragma: no cover - support direct script execution
+    from anomaly_detector import AnomalyDetector
+    from event_consumer import EventConsumer
+    from event_producer import EventProducer
+    from event_topic import EventTopic
 
 
 def load_data(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
-
 def run_pipeline(file_path):
     data = load_data(file_path)
 
-    # INTENTIONAL ASSESSMENT ISSUE #2
-    producer_topic = EventTopic("service-events")
+    producer_topic = EventTopic("anomaly-events")
 
     detector = AnomalyDetector()
     producer = EventProducer(producer_topic)
 
-    # INTENTIONAL ASSESSMENT ISSUE #3
-    consumer_topic = EventTopic("anomaly-events")
+    consumer_topic = producer_topic
     consumer = EventConsumer(consumer_topic)
 
     detected_events = []
@@ -35,9 +38,15 @@ def run_pipeline(file_path):
 
     consumed_events = consumer.consume()
 
+    # Provide summary including component roles to aid verification of the event flow
+    topic_name = getattr(producer_topic, "name", None)
+
     return {
         "records_processed": len(data),
         "anomalies_detected": detected_events,
+        "producer": producer.__class__.__name__,
+        "topic": topic_name,
+        "consumer": consumer.__class__.__name__,
         "events_consumed": consumed_events
     }
 
